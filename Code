@@ -1,0 +1,33 @@
+import pandas as pd
+from textblob import TextBlob
+import matplotlib.pyplot as plt
+from wordcloud import WordCloud
+
+df = pd.read_csv('/mnt/data/twitter_training.csv', encoding='latin1', header=None)
+df = df[[1, 3]]
+df.columns = ['Sentiment', 'Tweet']
+
+def get_polarity(text):
+    return TextBlob(text).sentiment.polarity
+
+df['Polarity'] = df['Tweet'].apply(get_polarity)
+df['Sentiment_Analysis'] = df['Polarity'].apply(lambda x: 'Positive' if x > 0 else ('Negative' if x < 0 else 'Neutral'))
+sentiment_counts = df['Sentiment_Analysis'].value_counts()
+
+plt.figure(figsize=(6, 4))
+sentiment_counts.plot(kind='bar', color=['green', 'red', 'gray'])
+plt.title('Sentiment Distribution')
+plt.xlabel('Sentiment')
+plt.ylabel('Number of Tweets')
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.show()
+
+positive_text = ' '.join(df[df['Sentiment_Analysis'] == 'Positive']['Tweet'])
+wordcloud = WordCloud(width=800, height=400, background_color='white').generate(positive_text)
+
+plt.figure(figsize=(10, 5))
+plt.imshow(wordcloud, interpolation='bilinear')
+plt.axis('off')
+plt.title('Word Cloud - Positive Tweets')
+plt.show()
